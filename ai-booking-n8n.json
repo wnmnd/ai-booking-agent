@@ -58,7 +58,7 @@
               }
             }
           ],
-          "combinator": "or"
+          "combinator": "and"
         },
         "options": {}
       },
@@ -181,6 +181,7 @@
       "parameters": {
         "toRecipients": "winamunada10@gmail.com",
         "subject": "=⚠️ Follow-up Required - {{ $('Retell AI Webhook').item.json.extracted_data.full_name }}",
+        "bodyContent": "=FOLLOW-UP REQUIRED - MANUAL VERIFICATION NEEDED\n\nPATIENT NAME: {{ $('Retell AI Webhook').item.json.extracted_data.full_name }}\nBRANCH: {{ $('Retell AI Webhook').item.json.extracted_data.location }}\nREQUESTED DATE: {{ $('Retell AI Webhook').item.json.extracted_data.preferred_date }}\nREQUESTED TIME: {{ $('Retell AI Webhook').item.json.extracted_data.preferred_schedule }}\n\nPlease review and confirm the appointment details before finalizing.\n",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.microsoftOutlook",
@@ -203,6 +204,7 @@
       "parameters": {
         "toRecipients": "winamunada10@gmail.com",
         "subject": "=New Appointment Booked - {{ $('Retell AI Webhook').item.json.extracted_data.full_name }}",
+        "bodyContent": "=NEW APPOINTMENT SUCCESSFULLY BOOKED!\n\nPATIENT NAME: {{ $('Retell AI Webhook').item.json.extracted_data.full_name }}\nBRANCH: {{ $('Retell AI Webhook').item.json.extracted_data.location }}\nDATE: {{ $('Retell AI Webhook').item.json.extracted_data.preferred_date }}\nTIME: {{ $('Retell AI Webhook').item.json.extracted_data.preferred_schedule }}\n\nThank you!\n",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.microsoftOutlook",
