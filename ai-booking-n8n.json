@@ -1,0 +1,361 @@
+{
+  "name": "ai-booking",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "retell-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1bbe4ef8-f343-4e39-8ebb-afef468b260e",
+      "name": "Retell AI Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        112
+      ],
+      "webhookId": "retell-ai-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "time-slot-available",
+              "leftValue": "={{ $json.busy && $json.busy.length === 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            },
+            {
+              "id": "7faf5007-ee19-4c7d-bfba-fab8c27f53ee",
+              "leftValue": true,
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "204a91d8-10e6-4172-9294-6796bb918554",
+              "leftValue": false,
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "89d47f41-28c9-46af-90d5-c3c039bab108",
+      "name": "Availability Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "base",
+        "options": {}
+      },
+      "id": "99cc90f1-2624-4421-bbc0-d64cc494333d",
+      "name": "Airtable - Appointment Booked",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        640,
+        0
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "3dtAPKj5QPushRdt",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "base",
+        "options": {}
+      },
+      "id": "e4802053-8bd6-4e3a-8345-fd22f266334c",
+      "name": "Airtable - Follow-up Required",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        416,
+        208
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "3dtAPKj5QPushRdt",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"{{ $('Get availability in a calendar').item.json.busy && $('Get availability in a calendar').item.json.busy.length === 0 ? 'Appointment booked successfully - slot available' : 'Appointment logged for follow-up - slot unavailable' }}\",\n  \"call_id\": \"{{ $('Retell AI Webhook').item.json.call_id }}\",\n  \"availability\": \"{{ $('Get availability in a calendar').item.json.busy && $('Get availability in a calendar').item.json.busy.length === 0 ? 'available' : 'unavailable' }}\",\n  \"requested_slot\": {\n    \"date\": \"{{ $('Retell AI Webhook').item.json.extracted_data.preferred_date }}\",\n    \"schedule\": \"{{ $('Retell AI Webhook').item.json.extracted_data.preferred_schedule }}\"\n  },\n  \"timestamp\": \"{{ $now }}\"\n}",
+        "options": {}
+      },
+      "id": "94826548-96cf-443c-9598-157891705bbe",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "family07244731641692448556@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Keluarga"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        112
+      ],
+      "id": "0680c2ff-89db-465d-ad42-02f6abb73174",
+      "name": "Get availability in a calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "fDLQP2bMCB2EVfU7",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "family07244731641692448556@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Keluarga"
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        0
+      ],
+      "id": "25ae13cd-81e1-45b6-bc58-bd345968fb99",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "fDLQP2bMCB2EVfU7",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toRecipients": "winamunada10@gmail.com",
+        "subject": "=⚠️ Follow-up Required - {{ $('Retell AI Webhook').item.json.extracted_data.full_name }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        672,
+        208
+      ],
+      "id": "4994f1f4-b052-40ff-8ca0-d6c250e2393e",
+      "name": "Send a message",
+      "webhookId": "c10e7328-63da-4ede-810f-4b8c22ad926f",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "NmjfuLAD5uRVeJwv",
+          "name": "Microsoft Outlook account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toRecipients": "winamunada10@gmail.com",
+        "subject": "=New Appointment Booked - {{ $('Retell AI Webhook').item.json.extracted_data.full_name }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        848,
+        0
+      ],
+      "id": "8adac986-70ac-4c7a-a8e2-caf0a05a65ef",
+      "name": "Send a message1",
+      "webhookId": "414aa3b4-310b-4baa-9c96-fe7e67d73143",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "NmjfuLAD5uRVeJwv",
+          "name": "Microsoft Outlook account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Retell AI Webhook": [
+      {
+        "json": {
+          "call_id": "test_call_123",
+          "caller_phone": "+60123456789",
+          "call_duration": 180,
+          "transcript": "Hello, saya nak buat temujanji dialisis. Nama saya Ahmad Ali, saya dari Masjid Tanah. Saya ada bantuan GL.",
+          "call_status": "completed",
+          "call_analysis": {
+            "intent": "booking_request",
+            "language": "malay",
+            "sentiment": "positive"
+          },
+          "extracted_data": {
+            "full_name": "Ahmad Ali",
+            "location": "Masjid Tanah",
+            "contact_number": "+60123456789",
+            "payment_method": "GL",
+            "preferred_schedule": "morning",
+            "preferred_date": "2025-08-15",
+            "special_needs": "transport required",
+            "appointment_confirmed": true
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Retell AI Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get availability in a calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Availability Router": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Airtable - Follow-up Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable - Appointment Booked": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable - Follow-up Required": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get availability in a calendar": {
+      "main": [
+        [
+          {
+            "node": "Availability Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event": {
+      "main": [
+        [
+          {
+            "node": "Airtable - Appointment Booked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "587495b5-f157-4683-96b8-faeb5a225c92",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3fbe3f663c3687ff7a9caf5d306fe1e374023d9d2289b6a01cf7ac6d4e36fdcb"
+  },
+  "id": "vmOyMXJYOQKv6Od6",
+  "tags": []
+}
